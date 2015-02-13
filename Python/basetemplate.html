@@ -1,0 +1,200 @@
+<html>
+    <head>
+
+        <title>CityFury - {% block title %}Furiously Passionate about your City{% endblock %}</title>
+
+        <link rel="shortcut icon" type="image/x-icon" href="/static/cityfury/img/favicon.ico">
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.0.1-p7/css/bootstrap.min.css">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.0.1-p7/js/bootstrap.min.js"></script>
+
+        <link rel="stylesheet" href="/static/cityfury/css/site.css">
+
+        <script>
+            function size_active_list() {
+                var active_list_items = $('.minimized li.active');
+                active_list_items.each(function(active_list) {
+                    active_list = $(active_list_items[active_list]);
+                    var extra_padding = 15;
+                    if (active_list.parent().parent().is('#second-nav')) {
+                        extra_padding = 25;
+                    }
+                    active_list.css('margin-top', extra_padding + Math.pow(active_list.text().length, 2));
+                });
+            }
+            $(function () {
+                $(window).load(function() {
+                    $(".full-height").css("height", $("#main").height());
+                });
+                setTimeout(function() {
+                    $(".full-height").css("height", $("#main").height());
+                }, 2000);
+                setTimeout(function() {
+                    $(".full-height").css("height", $("#main").height());
+                }, 5000);
+                function closeModal() {
+                    $('#iframe-modal').modal('hide');
+                }
+                window.closeModal = closeModal;
+                function getLoginButtons() {
+                    $.ajax({
+                        url: "{% url 'get_login_buttons' %}?next={{ request.path }}",
+                        success: function(data, status) {
+                            $("#login_buttons").html(data.html);
+                        }
+                    });
+                }
+                window.getLoginButtons = getLoginButtons;
+                window.resizeModal = function(modal_class) {
+                    $("#iframe-modal .modal-content").attr("class", "modal-content");
+                    $("#iframe-modal .modal-content").addClass(modal_class);
+                }
+                window.titleModal = function(modal_title) {
+                    $("#iframe-modal .modal-title").text(modal_title);
+                }
+                window.resizeIframe = function(newHeight)
+                {
+                    $('#iframe-modal .modal-body iframe').css("height", newHeight);
+                }
+                window.addContactToPost = function(text, url) {
+                    $(".contact-container").append("<div class='contact' rel='" + url +"'>" + text + "</div>");
+                }
+                function maximizeNav(el) {
+                    el.parent().removeClass('minimized').addClass('maximized');
+                    el.removeClass('glyphicon-align-justify').addClass('glyphicon-align-left');
+                    var active_list = el.parent().find('li.active');
+                    active_list.css('margin-top', 0);
+                }
+                function minimizeNav(el) {
+                    el.parent().removeClass('maximized').addClass('minimized');
+                    el.removeClass('glyphicon-align-left').addClass('glyphicon-align-justify');
+                    size_active_list();
+                }
+                size_active_list();
+                $('.maximized .minimize-control').live('click', function(el) {minimizeNav($(el.currentTarget))});
+                $('.minimized').live('click', function(e) {
+                    e.preventDefault();
+                    maximizeNav($(e.currentTarget).find(".minimize-control"));
+                    return false;
+                });
+            });
+        </script>
+
+        {% block extra_head %}{% endblock %}
+    </head>
+    <body>
+        <header class="">
+            <div class="logo-col">
+                <a href="/" id="logo" class="lead">CityFury</a>
+            </div>
+            <div class="tagline-col">
+                <p class="lead"><span class="hidden-xs hidden-sm tagline">Furiously Passionate about your City</span>
+                <a class="header-links btn btn-success" href="{% url "post_something" %}">Post Something</a>
+                    <span id="login_buttons">
+                        <a class="header-links" href="https://www.facebook.com/cityfury" target="blank" title="Like us on facebook" alt="Like us on facebook"><img style="margin-top: -5px;" width="30" src="{{ STATIC_URL }}cityfury/img/facebook_like.png" /></a>
+                        {% include "cityfury/includes/login_buttons.html" %}
+                    </span>
+                </p>
+            </div>
+        </header>
+            <div id="main-container">
+                <div class="full-height {% if open_category_nav %}maximized{% else %}minimized{% endif %}" id="first-nav">
+                    <a class="minimize-control glyphicon glyphicon-align-{% if open_category_nav %}left{% else %}justify{% endif %}"></a>
+                    <h3 class="lead"><span class="nav-title">Categories</span></h3>
+                    <ul>
+                        {% if city and city.name != "All" %}
+                            <li {% if category.name == "All" %}class="active"{% endif %}><a href="{% url "city" "all" city.slug %}">All</a></li>
+                        {% else %}
+                            <li {% if category.name == "All" %}class="active"{% endif %}><a href="{% url "posts" %}">All</a></li>
+                        {% endif %}
+                        {% for c in categories %}
+                            {% if city %}
+                                <li {% if category == c %}class="active"{% endif %}><a href="{% url "city" c.slug city.slug %}">{{ c.name }}</a></li>
+                            {% else %}
+                                <li {% if category == c %}class="active"{% endif %}><a href="{% url "category" c.slug %}">{{ c.name }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="full-height {% if open_city_nav %}maximized{% else %}minimized{% endif %}" id="second-nav">
+                    {% block left_nav %}
+                        <a class="minimize-control glyphicon glyphicon-align-{% if open_city_nav %}left{% else %}justify{% endif %}"></a>
+                        <h3 class="lead"><span class="nav-title">Cities</span></h3>
+                        <ul>
+                            <li class="{% if city.name|lower == "all" %}active{% endif %}"><a href="{% if category %}{% url "category" category.slug %}{% else %}{% url "posts" %}{% endif %}">All</a></li>
+                            {% for c in cities %}
+                                {% if category.name %}
+                                    <li class="{% if c == city %}active{% endif %}"><a href="{% url "city" category.slug c.slug %}">{{ c.name }}</a></li>
+                                {% else %}
+                                    <li class="{% if c == city %}active{% endif %}"><a href="{% url "city" "all" c.slug %}">{{ c.name }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endblock %}
+                </div>
+
+                <div id="main">
+
+                    <nav class="navbar navbar-default" role="navigation">
+                            <!-- Brand and toggle get grouped for better mobile display -->
+                          <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                              <span class="sr-only">Toggle navigation</span>
+                              <span class="icon-bar"></span>
+                              <span class="icon-bar"></span>
+                              <span class="icon-bar"></span>
+                            </button>
+                            <a class="navbar-brand visible-xs" href="#">Nav</a>
+                          </div>
+
+                            <div class="collapse navbar-collapse lead" id="bs-example-navbar-collapse-1">
+                            <ul class="nav navbar-nav">
+                                <li {% if home_page %}class="active"{% endif %}><a href="{% url "home" %}">Home</a></li>
+                                <li {% block post_nav_class %}{% endblock %}><a href="{% url "posts" %}">Posts</a></li>
+                                <li {% if about_page %}class="active"{% endif %}><a href="{% url "about" %}">About</a></li>
+                                <li {% if contact_page %}class="active"{% endif %}><a href="{% url "contact" %}">Contact</a></li>
+                                <li {% if support_page %}class="active"{% endif %}><a href="{% url "support" %}">Support</a></li>
+                            </ul>
+                        </div>
+                    </nav>
+
+                    {% block main %}
+                    {% endblock %}
+
+                    </div>
+                </div>
+            </div>
+        <footer>
+            &copy; CityFury 2013
+        </footer>
+
+<div class="modal fade" id="iframe-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-38947225-2', 'cityfury.com');
+  ga('send', 'pageview');
+</script>
+
+    </body>
+</html>

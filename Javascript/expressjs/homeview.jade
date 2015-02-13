@@ -1,0 +1,56 @@
+extends layout
+
+block content
+    div(class='panel panel-default')
+        div(class='panel-body')
+            div.row
+                div(class='col-sm-12')
+                    h2.bottom-border Welcome to Menugrapher!
+                        h4.text-info All the information you need to know about your favorite restaurants
+                        h4.text-warning Share and organize your food photography
+                        h4.text-danger Look up menues and place orders
+                    br
+                    if !user
+                        a(class="btn btn-success", href="signup")
+                            i(class="fa fa-arrow-circle-o-right")
+                            | Start now
+                            a.btn.btn-link(href='/login') or Login
+                        br
+                        br
+                        br
+
+            div.row
+                div(class='col-sm-12')
+                    legend.lead Cities
+                        - var button_text = 'Hide';
+                        - var button_rel = 'city-search-panel';
+                        include includes/showhide
+                    div.content-panel.city-search-panel
+                        - var items = cities;
+                        - var search = true;
+                        - var placeholder = 'Search a City';
+                        - var api='/api/v1/cities';
+                        include includes/itemList
+
+            div.row
+                div.col-sm-12
+                    legend.lead Categories
+                       - var button_text = 'Hide';
+                        - var button_rel = 'category-search-panel';
+                        include includes/showhide
+                    div.content-panel.category-search-panel
+                        - items = categories
+                        - var search = true;
+                        - var placeholder = 'Search Categories';
+                        - var api='/api/v1/categories';
+                        include includes/itemList
+
+            div.row
+                div(class='col-sm-12')
+                    legend.lead Posts
+                       - var button_text = 'Hide';
+                        - var button_rel = 'posts-panel';
+                        include includes/showhide
+                    div.content-panel.posts-panel
+                        - var cols = 3
+                        include includes/posts

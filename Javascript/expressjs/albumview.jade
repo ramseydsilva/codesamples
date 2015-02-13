@@ -1,0 +1,42 @@
+extends ../layout
+
+block content
+    div(class='panel panel-default', room='album-#{album._id}')
+        div(class='panel-body', room='albums-user-#{album._user._id}')
+
+            div(class='clearfix row-fluid')
+                div(class='col-sm-3')
+                    - title = { name: (!!album._user ? album._user.profile.name : '') + "'s albums", url: '' }
+                    - items = userAlbums
+                    - id = 'userAlbums-' + album._user._id
+                    include ../includes/leftmenu
+
+                div(class='col-sm-9')
+                    div(class='container-fluid')
+                        div(class='row-fluid')
+                            div(class='col-sm-12')
+                                div.row
+                                    legend.pull-left
+                                        div.col-xs-6.col-xs-push-6
+                                            if album.userHasRights(user)
+                                                div.pull-right.text-right
+                                                    a(class='btn btn-sm btn-success', href=album.addUrl) Add Pictures
+                                                    a(class='btn btn-sm btn-warning', href=album.editUrl) Edit
+                                                    a(class='btn btn-sm btn-danger', href=album.deleteUrl) Delete
+                                        div.col-xs-6.col-xs-pull-6= album.name
+
+
+                        div(class='row-fluid')
+                            div(class='col-sm-12')
+                                - var item = album
+                                include ../includes/credits
+
+                        div(class='row-fluid padded clearfix')
+                            div(class='col-sm-12')
+                                - var cols = 3
+                                - var posts = album.pics.reverse()
+                                div#album-posts
+                                - each post in posts
+                                    include ../includes/post
+
+                        div.row-fluid.padded= album.description
